@@ -3,13 +3,14 @@ import Link from 'next/link';
 import MaxWidthWrapper from './max-width-wrapper';
 import { buttonVariants } from './ui/button';
 import { ArrowRight } from 'lucide-react';
-import { useAuth, useUser } from '@clerk/nextjs';
+import { SignOutButton, useAuth, useUser } from '@clerk/nextjs';
 import { ModeToggle } from './toggle-mode';
 
 const Navbar = () => {
   const { user } = useUser();
 
   const isAdmin = false;
+  // const isAdmin = (user?.primaryEmailAddress = process.env.ADMIN_EMAIL);
 
   return (
     <nav className='sticky z-[100] h-14 inset-x-0 top-0 w-full border-b border-gray-200 bg-white/75 backdrop-blur-lg transition-all'>
@@ -22,15 +23,7 @@ const Navbar = () => {
           <div className='h-full flex items-center space-x-4'>
             {user ? (
               <>
-                <Link
-                  href='/api/auth/logout'
-                  className={buttonVariants({
-                    size: 'sm',
-                    variant: 'ghost',
-                  })}
-                >
-                  Sign out
-                </Link>
+                <SignOutButton />
                 {isAdmin ? (
                   <Link
                     href='/dashboard'
@@ -43,7 +36,7 @@ const Navbar = () => {
                   </Link>
                 ) : null}
                 <Link
-                  href='/submissions'
+                  href='/submission'
                   className={buttonVariants({
                     size: 'sm',
                     className: 'hidden sm:flex items-center gap-1',
@@ -52,8 +45,6 @@ const Navbar = () => {
                   View Submissions
                   <ArrowRight className='ml-1.5 h-5 w-5' />
                 </Link>
-
-                <ModeToggle />
               </>
             ) : (
               <>

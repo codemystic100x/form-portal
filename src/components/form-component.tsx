@@ -19,10 +19,13 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { zodResolver } from '@hookform/resolvers/zod';
+
 import { useForm } from 'react-hook-form';
+import { useToast } from '@/components/ui/use-toast';
 import { z } from 'zod';
 import axios from 'axios';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -40,6 +43,9 @@ export function ProfileForm() {
   const { register, handleSubmit, reset } = useForm();
   const [isSubmitting, setIsIsSubmitting] = useState(false);
 
+  const { toast } = useToast();
+  const router = useRouter();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -53,8 +59,7 @@ export function ProfileForm() {
     try {
       setIsIsSubmitting(true);
       const response = await axios.post('/api/forms', data);
-      alert('Form was Submitted');
-      reset();
+      router.push('/thankyou');
       console.log(response);
     } catch (error) {
       console.error('Error in submitting form', error);
@@ -119,7 +124,16 @@ export function ProfileForm() {
               )}
             />
 
-            <Button type='submit'>
+            <Button
+              type='submit'
+              onClick={() => {
+                toast({
+                  title: 'Your Form was Submitted',
+                  description:
+                    'We will verify your details and conect with you soon !',
+                });
+              }}
+            >
               {isSubmitting ? 'Submitting Form....' : 'Submit'}
             </Button>
           </form>

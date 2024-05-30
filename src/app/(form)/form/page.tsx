@@ -7,7 +7,6 @@ import React from 'react';
 const Form = () => {
   return (
     <div>
-      <Navbar />
       <MaxWidthWrapper className='p-12 items-center justify-center'>
         <ProfileForm />
       </MaxWidthWrapper>

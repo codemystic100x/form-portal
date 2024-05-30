@@ -1,5 +1,5 @@
 import prismadb from '@/lib/prismadb';
-import { auth } from '@clerk/nextjs/server';
+import { auth, currentUser } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
@@ -13,23 +13,39 @@ export async function POST(req: Request) {
       return NextResponse.json('Unauthorized', { status: 403 });
     }
 
-    if (!name) {
-      return NextResponse.json('Form Name not available', { status: 400 });
+    if (!name || !walletAddress || !contributionReview) {
+      return NextResponse.json(
+        {
+          error:
+            'All fields (name, walletAddress, contributionReview) are required',
+        },
+        { status: 400 }
+      );
     }
-    if (!walletAddress) {
-      return NextResponse.json('Form Wallet Address not available', {
-        status: 400,
-      });
-    }
-    if (!contributionReview) {
-      return NextResponse.json('Form Contrbution not available', {
-        status: 400,
+
+    // Get the current user information from Clerk
+    const user = await currentUser();
+    const clerkId = userId;
+    const email = user?.primaryEmailAddress?.emailAddress || '';
+
+    // Ensure the user exists in the database
+    let dbUser = await prismadb.user.findUnique({
+      where: { clerkId },
+    });
+
+    if (!dbUser) {
+      dbUser = await prismadb.user.create({
+        data: {
+          clerkId,
+          email,
+          name: user?.firstName || '',
+        },
       });
     }
 
     const form = await prismadb.form.create({
       data: {
-        userId,
+        userId: dbUser.id,
         name,
         walletAddress,
         contributionReview,
@@ -39,27 +55,6 @@ export async function POST(req: Request) {
     return NextResponse.json(form, { status: 200 });
   } catch (error) {
     console.log('[FORMS_POST]', error);
-    return new NextResponse('Internal error', { status: 500 });
-  }
-}
-
-export async function GET(req: Request, res: Response) {
-  try {
-    const { userId } = auth();
-
-    if (!userId) {
-      return NextResponse.json('Unauthorized', { status: 403 });
-    }
-
-    const forms = await prismadb.form.findMany({
-      where: {
-        userId,
-      },
-    });
-
-    return NextResponse.json(forms, { status: 200 });
-  } catch (error) {
-    console.log('[FORMS_GET]', error);
     return new NextResponse('Internal error', { status: 500 });
   }
 }
