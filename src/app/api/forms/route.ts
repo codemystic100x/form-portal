@@ -23,12 +23,10 @@ export async function POST(req: Request) {
       );
     }
 
-    // Get the current user information from Clerk
     const user = await currentUser();
     const clerkId = userId;
     const email = user?.primaryEmailAddress?.emailAddress || '';
 
-    // Ensure the user exists in the database
     let dbUser = await prismadb.user.findUnique({
       where: { clerkId },
     });
@@ -59,35 +57,6 @@ export async function POST(req: Request) {
   }
 }
 
-// export async function GET(req: Request) {
-//   try {
-//     // const user = await currentUser();
-
-//     const user = await prismadb.user.findFirst({});
-
-//     const { userId: clerkUser } = auth();
-
-//     if (!clerkUser) {
-//       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
-//     }
-
-//     const forms = await prismadb.form.findMany({
-//       where: {
-//         userId: user?.id,
-//       },
-//     });
-
-//     if (forms.length === 0) {
-//       return NextResponse.json({ error: 'No forms found' }, { status: 404 });
-//     }
-
-//     return NextResponse.json(forms, { status: 200 });
-//   } catch (error) {
-//     console.error('[FORMS_GET]', error);
-//     return new NextResponse('Internal error', { status: 500 });
-//   }
-// }
-
 export async function GET(req: Request) {
   try {
     const { userId: clerkUserId } = auth();
@@ -96,7 +65,6 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    // Find the user in your database by their Clerk user ID
     const user = await prismadb.user.findUnique({
       where: { clerkId: clerkUserId },
     });
@@ -105,7 +73,6 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Fetch the forms associated with the authenticated user
     const forms = await prismadb.form.findMany({
       where: { userId: user.id },
     });
